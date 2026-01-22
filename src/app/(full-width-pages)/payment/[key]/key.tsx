@@ -2,23 +2,24 @@
 
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
-import { 
-    School, 
-    GraduationCap, 
-    ScrollText, 
-    CheckCircle2, 
-    AlertCircle, 
-    MessageCircle, 
-    CalendarDays, 
-    Banknote, 
+import {
+    School,
+    GraduationCap,
+    ScrollText,
+    CheckCircle2,
+    AlertCircle,
+    MessageCircle,
+    CalendarDays,
+    Banknote,
     ShieldCheck,
-    ArrowRight, 
+    ArrowRight,
     Copy,
-    Loader2 
+    Loader2
 } from 'lucide-react';
 import { toast } from 'react-toastify';
-import { endpointUrl, httpPost } from "@/../helpers"; 
+import { endpointUrl, httpPost } from "@/../helpers";
 import moment from 'moment';
+import { FaWhatsapp } from 'react-icons/fa';
 
 interface DetailItem {
     nama_tagihan: string;
@@ -65,9 +66,15 @@ export default function PaymentDetailPage() {
             return;
         }
 
+        const minLoadingTime = new Promise(resolve => setTimeout(resolve, 1000));
+
         try {
             const payload = { key: paymentKey };
-            const response = await httpPost(endpointUrl('transaction/detail-by-key'), payload);
+
+            const [response] = await Promise.all([
+                httpPost(endpointUrl('transaction/detail-by-key'), payload),
+                minLoadingTime
+            ]);
 
             if (response.data && response.data.status === 200) {
                 setData(response.data.data);
@@ -231,7 +238,7 @@ export default function PaymentDetailPage() {
                                 target="_blank"
                                 className="inline-flex items-center justify-center gap-2 w-full bg-green-50 text-green-600 hover:bg-green-100 hover:text-green-700 px-4 py-3 rounded-xl font-bold transition-all"
                             >
-                                <MessageCircle className="w-5 h-5" />
+                                <FaWhatsapp className="w-5 h-5" />
                                 Chat Admin Sekolah
                             </a>
                         </div>
@@ -285,7 +292,7 @@ export default function PaymentDetailPage() {
                                 target="_blank"
                                 className="inline-flex items-center justify-center gap-2 w-full bg-green-50 text-green-600 hover:bg-green-100 hover:text-green-700 px-4 py-3 rounded-xl font-bold transition-all"
                             >
-                                <MessageCircle className="w-5 h-5" />
+                                <FaWhatsapp className="w-5 h-5" />
                                 Chat Admin Sekolah
                             </a>
                         </div>
