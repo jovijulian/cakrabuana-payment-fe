@@ -18,6 +18,7 @@ import {
     ShieldCheck, 
     ArrowRight 
 } from "lucide-react"; // Menggunakan Lucide agar konsisten
+import { toast } from "react-toastify";
 
 const SignIn: React.FC = () => {
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
@@ -43,19 +44,20 @@ const SignIn: React.FC = () => {
     setLoading(true);
     setAlert(null);
     try {
-      const response = await axios<Root>({
-        method: "POST",
-        url: endpointUrl(`auth/login`),
-        data: {
-          ...payload,
-          user_agent: navigator.userAgent,
-        },
-      });
+      toast.success("Sedang dalam pengembangan. Silakan hubungi administrator untuk akses.");
+      // const response = await axios<Root>({
+      //   method: "POST",
+      //   url: endpointUrl(`auth/login`),
+      //   data: {
+      //     ...payload,
+      //     user_agent: navigator.userAgent,
+      //   },
+      // });
 
-      const { token, user } = response.data.data;
-      localStorage.setItem("token", token);
-      setCookie("cookieKey", token, {});
-      getMe();
+      // const { token, user } = response.data.data;
+      // localStorage.setItem("token", token);
+      // setCookie("cookieKey", token, {});
+      // getMe();
     } catch (error) {
       console.log(error);
       setAlert({
