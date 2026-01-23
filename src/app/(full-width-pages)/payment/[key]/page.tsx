@@ -4,7 +4,7 @@ import Key from "./key";
 
 export const metadata: Metadata = {
     title:
-        "Payment | Cakra Buana",
+        "Payment Portal | Cakra Buana",
 };
 
 export default function KeyPage() {

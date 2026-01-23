@@ -18,8 +18,9 @@ import {
 } from 'lucide-react';
 import { toast } from 'react-toastify';
 import { endpointUrl, httpPost } from "@/../helpers";
-import moment from 'moment';
+import { Loading } from '@/components/loading/Loading';
 import { FaWhatsapp } from 'react-icons/fa';
+import moment from 'moment';
 
 interface DetailItem {
     nama_tagihan: string;
@@ -116,26 +117,13 @@ export default function PaymentDetailPage() {
     }
 
     if (loading) {
-        return (
-            <div className="min-h-screen bg-gradient-to-br from-red-50 via-white to-yellow-50 flex flex-col items-center justify-center p-4">
-                <div className="relative">
-                    <div className="absolute inset-0 bg-[#A61C23] rounded-full animate-ping opacity-20"></div>
-                    <div className="relative bg-white p-4 rounded-full shadow-xl border-4 border-gray-100">
-                        <Loader2 className="h-8 w-8 text-[#A61C23] animate-spin" />
-                    </div>
-                </div>
-                <div className="mt-6 text-center">
-                    <p className="text-[#A61C23] font-bold text-lg animate-pulse">Sekolah Cakra Buana</p>
-                    <p className="text-gray-500 text-sm mt-1">Memuat rincian tagihan...</p>
-                </div>
-            </div>
-        );
+        return <Loading message='Memuat tagihan...'/>;
     }
 
     if (error || !data) {
         return (
             <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center p-4 text-center">
-                <div className="bg-white rounded-3xl shadow-xl p-8 max-w-md w-full border border-red-100">
+                <div className="bg-white rounded-3xl shadow-xl p-8 max-w-md w-full border border-green-100">
                     <div className="bg-red-50 rounded-full w-20 h-20 flex items-center justify-center mx-auto mb-6">
                         <AlertCircle className="text-red-500 w-10 h-10" />
                     </div>
@@ -151,7 +139,7 @@ export default function PaymentDetailPage() {
 
     return (
         <div className="min-h-screen bg-gray-50/50 pb-32 font-sans">
-            <div className="relative bg-gradient-to-br from-[#A61C23] via-[#85161C] to-[#5e0f13] text-white pb-32 rounded-b-[3rem] shadow-xl overflow-hidden">
+            <div className="relative bg-gradient-to-br from-[#007A33] via-[#006b2c] to-[#004d20] text-white pb-32 rounded-b-[3rem] shadow-xl overflow-hidden">
                 <div className="absolute inset-0 opacity-10 pointer-events-none">
                     <School className="absolute -right-10 -top-10 w-[18rem] h-[18rem] text-white transform rotate-12 stroke-1" />
                     <div className="absolute bottom-0 left-0 w-full h-32 bg-gradient-to-t from-black/20 to-transparent"></div>
@@ -167,11 +155,11 @@ export default function PaymentDetailPage() {
                                 </span>
                             </div>
                             <h1 className="text-3xl md:text-4xl font-bold tracking-tight">{data.sekolah}</h1>
-                            <p className="text-white/80 text-lg font-light mt-1">{data.tahun_ajaran}</p>
+                            <p className="text-white/80 text-lg font-light mt-1">Tahun ajaran: {data.tahun_ajaran}</p>
                         </div>
 
                         <div className="hidden md:block text-right">
-                            <div className={`inline-flex items-center gap-2 px-5 py-2 rounded-xl text-sm font-bold shadow-lg backdrop-blur-md border border-white/20 ${isLunas ? 'bg-green-500/80 text-white' : 'bg-white/90 text-[#A61C23]'
+                            <div className={`inline-flex items-center gap-2 px-5 py-2 rounded-xl text-sm font-bold backdrop-blur-md border border-white/20 ${isLunas ? 'bg-green-500/80 text-white' : 'bg-white/90 text-[#007A33]'
                                 }`}>
                                 {isLunas ? <CheckCircle2 className="w-5 h-5" /> : <CalendarDays className="w-5 h-5" />}
                                 {data.status_bayar}
@@ -186,11 +174,11 @@ export default function PaymentDetailPage() {
 
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 md:gap-8">
                     <div className="lg:col-span-4 lg:sticky lg:top-8 h-fit space-y-6">
-                        <div className="bg-white rounded-3xl shadow-xl shadow-gray-200/50 p-6 md:p-8 border border-white/50 backdrop-blur-sm relative overflow-hidden group">
-                            <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-blue-50 to-transparent rounded-bl-full -mr-10 -mt-10 transition-transform group-hover:scale-110"></div>
+                        <div className="bg-white rounded-3xl  p-6 md:p-8 border border-white/50 backdrop-blur-sm relative overflow-hidden group">
+                            <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-green-50 to-transparent rounded-bl-full -mr-10 -mt-10 transition-transform group-hover:scale-110"></div>
                             <div className="relative">
                                 <div className="flex items-center gap-4 mb-6">
-                                    <div className="bg-gradient-to-br from-blue-500 to-indigo-600 w-16 h-16 rounded-2xl flex items-center justify-center text-white shadow-lg shadow-blue-200">
+                                    <div className="bg-gradient-to-br from-[#007A33] to-[#00A846] w-16 h-16 rounded-2xl flex items-center justify-center text-white ">
                                         <GraduationCap className="w-8 h-8" />
                                     </div>
                                     <div>
@@ -204,15 +192,15 @@ export default function PaymentDetailPage() {
                                         <p className="text-xs text-gray-400 uppercase font-bold tracking-wider mb-1">Nomor Faktur</p>
                                         <div className="flex justify-between items-center">
                                             <p className="text-gray-800 font-mono font-bold text-sm truncate mr-2">{data.no_faktur}</p>
-                                            <button onClick={copyFaktur} className="text-blue-500 hover:text-blue-700 transition-colors p-1" title="Salin Faktur">
+                                            <button onClick={copyFaktur} className="text-[#007A33] hover:text-[#005c27] transition-colors p-1" title="Salin Faktur">
                                                 <Copy className="w-4 h-4" />
                                             </button>
                                         </div>
                                     </div>
 
-                                    <div className={`rounded-xl p-4 border flex items-center gap-3 ${isLunas ? 'bg-green-50 border-green-100 text-green-700' : 'bg-orange-50 border-orange-100 text-orange-700'
+                                    <div className={`rounded-xl p-4 border flex items-center gap-3 ${isLunas ? 'bg-green-50 border-green-100 text-green-700' : 'bg-amber-50 border-amber-100 text-amber-700'
                                         }`}>
-                                        <div className={`p-2 rounded-lg ${isLunas ? 'bg-green-200' : 'bg-orange-200'}`}>
+                                        <div className={`p-2 rounded-lg ${isLunas ? 'bg-green-200' : 'bg-amber-200'}`}>
                                             {isLunas ? <CheckCircle2 className="w-5 h-5" /> : <AlertCircle className="w-5 h-5" />}
                                         </div>
                                         <div>
@@ -231,12 +219,12 @@ export default function PaymentDetailPage() {
                             </div>
                         </div>
 
-                        <div className="hidden lg:block bg-white/60 backdrop-blur rounded-2xl p-5 border border-white/50 text-center">
+                        <div className="hidden lg:block bg-white/60 backdrop-blur rounded-2xl p-5 border border-white/50 text-center shadow-sm">
                             <p className="text-sm text-gray-500 mb-3">Mengalami kendala pembayaran?</p>
                             <a
                                 href={`https://wa.me/${data.no_wa}`}
                                 target="_blank"
-                                className="inline-flex items-center justify-center gap-2 w-full bg-green-50 text-green-600 hover:bg-green-100 hover:text-green-700 px-4 py-3 rounded-xl font-bold transition-all"
+                                className="inline-flex items-center justify-center gap-2 w-full bg-green-50 text-[#007A33] hover:bg-green-100 hover:text-green-800 px-4 py-3 rounded-xl font-bold transition-all"
                             >
                                 <FaWhatsapp className="w-5 h-5" />
                                 Chat Admin Sekolah
@@ -246,28 +234,27 @@ export default function PaymentDetailPage() {
 
                     <div className="lg:col-span-8 space-y-6">
                         <div className="flex items-center gap-3 px-2">
-                            <div className="bg-[#A61C23] text-white p-2 rounded-lg shadow-md">
+                            <div className="bg-[#007A33] text-white p-2 rounded-lg">
                                 <ScrollText className="w-5 h-5" />
                             </div>
                             <h3 className="text-xl font-bold text-gray-800">Rincian Pembayaran</h3>
                         </div>
 
-                        <div className="bg-white rounded-3xl shadow-xl shadow-gray-200/50 overflow-hidden border border-gray-100">
+                        <div className="bg-white rounded-3xl shadow-xl shadow-green-900/5 overflow-hidden border border-gray-100">
                             <div className="divide-y divide-gray-100">
                                 {data.detail.map((item, index) => (
                                     <div
                                         key={index}
-                                        className="group p-5 md:p-6 hover:bg-gray-50 transition-colors flex flex-col sm:flex-row sm:items-center justify-between gap-3"
+                                        className="group p-5 md:p-6 hover:bg-green-50/50 transition-colors flex flex-col sm:flex-row sm:items-center justify-between gap-3"
                                     >
                                         <div className="flex items-start gap-4">
-                                            <div className="mt-1.5 w-2 h-2 rounded-full bg-gray-300 group-hover:bg-[#A61C23] transition-colors flex-shrink-0"></div>
+                                            <div className="mt-1.5 w-2 h-2 rounded-full bg-gray-300 group-hover:bg-[#007A33] transition-colors flex-shrink-0"></div>
                                             <div>
                                                 <p className="text-gray-800 font-medium text-lg leading-snug">{item.nama_tagihan}</p>
-                                                <p className="text-gray-400 text-xs mt-1 md:hidden">Tagihan Sekolah</p>
                                             </div>
                                         </div>
                                         <div className="text-right pl-6">
-                                            <span className="block font-bold text-gray-900 text-lg group-hover:text-[#A61C23] transition-colors">
+                                            <span className="block font-bold text-gray-900 text-lg group-hover:text-[#007A33] transition-colors">
                                                 {formatRupiah(item.nominal)}
                                             </span>
                                         </div>
@@ -279,7 +266,7 @@ export default function PaymentDetailPage() {
                                 <div className="text-gray-500 text-sm md:text-base font-medium">
                                     Total Tagihan Keseluruhan
                                 </div>
-                                <div className="text-3xl font-bold text-[#A61C23]">
+                                <div className="text-3xl font-bold text-[#007A33]">
                                     {formatRupiah(data.total_tagihan)}
                                 </div>
                             </div>
@@ -300,30 +287,30 @@ export default function PaymentDetailPage() {
                 </div>
             </div>
 
-            <div className="fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur-xl border-t border-gray-200 shadow-[0_-5px_20px_-5px_rgba(0,0,0,0.1)] z-50">
+            <div className="fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur-xl border-t border-green-100  z-50">
                 <div className="max-w-7xl mx-auto px-4 py-4 md:py-5">
                     <div className="flex flex-col md:flex-row items-center justify-between gap-4">
                         <div className="hidden md:flex items-center gap-3">
-                            <div className="bg-gray-100 p-3 rounded-full text-gray-500">
+                            <div className="bg-green-50 p-3 rounded-full text-[#007A33]">
                                 <Banknote className="w-6 h-6" />
                             </div>
                             <div>
                                 <p className="text-xs text-gray-500 uppercase font-bold">Total Pembayaran</p>
-                                <p className="text-xl font-bold text-[#A61C23]">{formatRupiah(data.total_tagihan)}</p>
+                                <p className="text-xl font-bold text-[#007A33]">{formatRupiah(data.total_tagihan)}</p>
                             </div>
                         </div>
 
                         <div className="w-full md:w-auto flex gap-3">
-                            <div className="md:hidden flex-1 bg-gray-50 px-4 py-2 rounded-xl border border-gray-200 flex flex-col justify-center">
+                            <div className="md:hidden flex-1 bg-green-50 px-4 py-2 rounded-xl border border-green-100 flex flex-col justify-center">
                                 <span className="text-[10px] text-gray-500 font-bold uppercase">Total</span>
-                                <span className="text-lg font-bold text-[#A61C23] leading-none">{formatRupiah(data.total_tagihan)}</span>
+                                <span className="text-lg font-bold text-[#007A33] leading-none">{formatRupiah(data.total_tagihan)}</span>
                             </div>
 
                             {!isLunas ? (
                                 <button
                                     onClick={handlePayment}
                                     disabled={processing}
-                                    className="flex-1 md:flex-none bg-[#A61C23] hover:bg-[#85161C] text-white px-8 py-3 rounded-xl font-bold shadow-lg shadow-red-200 hover:shadow-red-300 transform active:scale-95 transition-all flex items-center justify-center gap-3 min-w-[200px]"
+                                    className="flex-1 md:flex-none bg-[#007A33] hover:bg-[#006b2c] text-white px-8 py-3 rounded-xl font-bold  transform active:scale-95 transition-all flex items-center justify-center gap-3 min-w-[200px]"
                                 >
                                     {processing ? (
                                         <>
@@ -338,8 +325,8 @@ export default function PaymentDetailPage() {
                                     )}
                                 </button>
                             ) : (
-                                <button disabled className="flex-1 md:flex-none bg-green-500 text-white px-8 py-3 rounded-xl font-bold shadow-lg shadow-green-200 cursor-not-allowed flex items-center justify-center gap-2 min-w-[200px]">
-                                    <CheckCircle2 className="w-5 h-5" />
+                                <button disabled className="flex-1 md:flex-none bg-gray-100 text-gray-500 px-8 py-3 rounded-xl font-bold cursor-not-allowed flex items-center justify-center gap-2 min-w-[200px] border border-gray-200">
+                                    <CheckCircle2 className="w-5 h-5 text-gray-400" />
                                     Pembayaran Lunas
                                 </button>
                             )}
