@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { useParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import {
     School,
     GraduationCap,
@@ -18,7 +18,8 @@ import {
     X,
     ChevronDown,
     ChevronUp,
-    CreditCard
+    CreditCard,
+    Check
 } from 'lucide-react';
 import { toast } from 'react-toastify';
 import { endpointUrl, httpPost } from "@/../helpers";
@@ -62,6 +63,7 @@ interface PaymentData {
 
 export default function PaymentDetailPage() {
     const params = useParams();
+    const router = useRouter();
     const [data, setData] = useState<PaymentData | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
@@ -69,6 +71,7 @@ export default function PaymentDetailPage() {
     const [showContent, setShowContent] = useState(false);
     const [showInstructionModal, setShowInstructionModal] = useState(false);
     const [activeInstruction, setActiveInstruction] = useState<number | null>(null);
+    const [paymentSuccess, setPaymentSuccess] = useState(false);
     const getTheme = () => {
         const sekolah = data?.sekolah?.toLowerCase() || '';
         if (sekolah.includes('bintara')) {
@@ -122,6 +125,7 @@ export default function PaymentDetailPage() {
             ]);
 
             if (response.data && response.data.status === 200) {
+                response.data.data.sekolah = 'Bintara'
                 setData(response.data.data);
                 setTimeout(() => setShowContent(true), 100);
             } else {
@@ -167,6 +171,14 @@ export default function PaymentDetailPage() {
 
     const toggleInstruction = (id: number) => {
         setActiveInstruction(activeInstruction === id ? null : id);
+    };
+
+    const handleConfirmPayment = () => {
+        setPaymentSuccess(true);
+    };
+
+    const handleGoToLogin = () => {
+        router.push('/signin');
     };
 
     if (loading) {
@@ -322,6 +334,15 @@ export default function PaymentDetailPage() {
                                 Chat Admin Sekolah
                             </a>
                         </div>
+                        <div className="text-center py-4">
+                            <a
+                                href="/signin"
+                                className="inline-flex items-center justify-center gap-2 w-full bg-blue-600 text-white px-4 py-3 rounded-xl font-bold hover:bg-blue-700 shadow-md transition-all"
+                            >
+                                Lihat Riwayat Pembayaran
+                            </a>
+                        </div>
+
                     </div>
                 </div>
             </div>
@@ -382,81 +403,101 @@ export default function PaymentDetailPage() {
                     ></div>
 
                     <div className="relative w-full max-w-lg bg-white rounded-t-3xl sm:rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh] animate-in slide-in-from-bottom-10 fade-in duration-300">
-                        <div className={`${theme.bgLight} p-5 border-b ${theme.borderLight} flex justify-between items-center`}>
-                            <div>
-                                <h3 className="text-lg font-bold text-gray-800">Instruksi Pembayaran</h3>
-                                <p className="text-xs text-gray-500">Virtual Account</p>
+                        {paymentSuccess ? (
+                            <div className="p-8 text-center flex flex-col items-center justify-center min-h-[400px]">
+                                <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mb-6 animate-bounce">
+                                    <CheckCircle2 className="w-10 h-10 text-green-600" />
+                                </div>
+                                <h3 className="text-2xl font-bold text-gray-800 mb-4">Terima Kasih!</h3>
+                                <p className="text-gray-600 mb-8 leading-relaxed">
+                                    Terima kasih atas pembayarannya.<br />
+                                    Silakan login kembali dalam <strong>1x24 Jam</strong> untuk melihat status pembayaran Anda terupdate.
+                                </p>
+                                <button
+                                    onClick={handleGoToLogin}
+                                    className={`w-full py-4 rounded-xl font-bold text-white shadow-lg flex items-center justify-center gap-2 ${theme.primary}`}
+                                >
+                                    Ke Halaman Login <ArrowRight className="w-5 h-5" />
+                                </button>
                             </div>
-                            <button
-                                onClick={() => setShowInstructionModal(false)}
-                                className="p-2 bg-white rounded-full text-gray-400 hover:text-gray-600 shadow-sm"
-                            >
-                                <X className="w-5 h-5" />
-                            </button>
-                        </div>
-
-                        <div className="overflow-y-auto p-5 space-y-6">
-                            <div className="bg-gradient-to-r from-gray-800 to-gray-900 rounded-2xl p-6 text-white shadow-lg relative overflow-hidden">
-                                <div className="absolute top-0 right-0 w-32 h-32 bg-white opacity-5 rounded-full -mr-10 -mt-10 pointer-events-none"></div>
-
-                                <p className="text-gray-400 text-xs font-medium uppercase tracking-wider mb-2">Nomor Virtual Account</p>
-                                <div className="flex items-center justify-between gap-4">
-                                    <span className="text-xl font-mono font-bold tracking-wider relative z-10">{data.va}</span>
+                        ) : (
+                            <>
+                                <div className={`${theme.bgLight} p-5 border-b ${theme.borderLight} flex justify-between items-center`}>
+                                    <div>
+                                        <h3 className="text-lg font-bold text-gray-800">Instruksi Pembayaran</h3>
+                                        <p className="text-xs text-gray-500">Virtual Account</p>
+                                    </div>
                                     <button
-                                        onClick={() => copyToClipboard(data.va, 'Nomor VA')}
-                                        className="bg-white/10 hover:bg-white/20 p-2 rounded-lg transition-colors relative z-10" 
+                                        onClick={() => setShowInstructionModal(false)}
+                                        className="p-2 bg-white rounded-full text-gray-400 hover:text-gray-600 shadow-sm"
                                     >
-                                        <Copy className="w-5 h-5 text-white" />
+                                        <X className="w-5 h-5" />
                                     </button>
                                 </div>
-                                <div className="mt-4 pt-4 border-t border-white/10 flex justify-between items-center relative z-10">
-                                    <span className="text-gray-400 text-sm">Total Tagihan</span>
-                                    <span className="text-xl font-bold">{formatRupiah(data.total_tagihan)}</span>
-                                </div>
-                            </div>
 
-                            <div>
-                                <h4 className="font-bold text-gray-800 mb-3 flex items-center gap-2">
-                                    <CreditCard className={`w-5 h-5 ${theme.text}`} />
-                                    Metode Pembayaran
-                                </h4>
-                                <div className="space-y-3">
-                                    {data.instructions.map((inst) => (
-                                        <div key={inst.id} className="border border-gray-200 rounded-xl overflow-hidden">
+                                <div className="overflow-y-auto p-5 space-y-6">
+                                    <div className="bg-gradient-to-r from-gray-800 to-gray-900 rounded-2xl p-6 text-white shadow-lg relative overflow-hidden">
+                                        <div className="absolute top-0 right-0 w-32 h-32 bg-white opacity-5 rounded-full -mr-10 -mt-10 pointer-events-none"></div>
+                                        <p className="text-gray-400 text-xs font-medium uppercase tracking-wider mb-2">Nomor Virtual Account</p>
+                                        <div className="flex items-center justify-between gap-4">
+                                            <span className="text-2xl font-mono font-bold tracking-wider relative z-10">{data.va}</span>
                                             <button
-                                                onClick={() => toggleInstruction(inst.id)}
-                                                className={`w-full flex items-center justify-between p-4 text-left font-medium text-gray-700 hover:bg-gray-50 transition-colors ${activeInstruction === inst.id ? 'bg-gray-50' : ''}`}
+                                                onClick={() => copyToClipboard(data.va, 'Nomor VA')}
+                                                className="bg-white/10 hover:bg-white/20 p-2 rounded-lg transition-colors relative z-10"
                                             >
-                                                <span>{inst.name}</span>
-                                                {activeInstruction === inst.id ? <ChevronUp className="w-4 h-4 text-gray-400" /> : <ChevronDown className="w-4 h-4 text-gray-400" />}
+                                                <Copy className="w-5 h-5 text-white" />
                                             </button>
-
-                                            {activeInstruction === inst.id && (
-                                                <div className="p-4 bg-gray-50 border-t border-gray-100 text-sm space-y-3">
-                                                    {inst.details.map((step, idx) => (
-                                                        <div key={step.step} className="flex gap-3">
-                                                            <div className={`flex-shrink-0 w-6 h-6 rounded-full ${theme.primary} text-white flex items-center justify-center text-xs font-bold mt-0.5`}>
-                                                                {idx + 1}
-                                                            </div>
-                                                            <p className="text-gray-600 leading-relaxed">{step.value}</p>
-                                                        </div>
-                                                    ))}
-                                                </div>
-                                            )}
                                         </div>
-                                    ))}
-                                </div>
-                            </div>
-                        </div>
+                                        <div className="mt-4 pt-4 border-t border-white/10 flex justify-between items-center relative z-10">
+                                            <span className="text-gray-400 text-sm">Total Tagihan</span>
+                                            <span className="text-xl font-bold">{formatRupiah(data.total_tagihan)}</span>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <h4 className="font-bold text-gray-800 mb-3 flex items-center gap-2">
+                                            <CreditCard className={`w-5 h-5 ${theme.text}`} />
+                                            Metode Pembayaran
+                                        </h4>
+                                        <div className="space-y-3">
+                                            {data.instructions.map((inst) => (
+                                                <div key={inst.id} className="border border-gray-200 rounded-xl overflow-hidden">
+                                                    <button
+                                                        onClick={() => toggleInstruction(inst.id)}
+                                                        className={`w-full flex items-center justify-between p-4 text-left font-medium text-gray-700 hover:bg-gray-50 transition-colors ${activeInstruction === inst.id ? 'bg-gray-50' : ''}`}
+                                                    >
+                                                        <span>{inst.name}</span>
+                                                        {activeInstruction === inst.id ? <ChevronUp className="w-4 h-4 text-gray-400" /> : <ChevronDown className="w-4 h-4 text-gray-400" />}
+                                                    </button>
 
-                        <div className="p-4 border-t border-gray-100 bg-gray-50 text-center">
-                            <button
-                                onClick={() => setShowInstructionModal(false)}
-                                className={`w-full py-3 rounded-xl font-bold ${theme.primary} text-white shadow-lg`}
-                            >
-                                Tutup
-                            </button>
-                        </div>
+                                                    {activeInstruction === inst.id && (
+                                                        <div className="p-4 bg-gray-50 border-t border-gray-100 text-sm space-y-3">
+                                                            {inst.details.map((step, idx) => (
+                                                                <div key={step.step} className="flex gap-3">
+                                                                    <div className={`flex-shrink-0 w-6 h-6 rounded-full ${theme.primary} text-white flex items-center justify-center text-xs font-bold mt-0.5`}>
+                                                                        {idx + 1}
+                                                                    </div>
+                                                                    <p className="text-gray-600 leading-relaxed">{step.value}</p>
+                                                                </div>
+                                                            ))}
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="p-4 border-t border-gray-100 bg-gray-50 text-center">
+                                    <button
+                                        onClick={handleConfirmPayment}
+                                        className={`w-full py-3.5 rounded-xl font-bold ${theme.primary} text-white shadow-lg flex items-center justify-center gap-2 transform active:scale-[0.98] transition-all`}
+                                    >
+                                        <Check className="w-5 h-5" />
+                                        Konfirmasi Pembayaran
+                                    </button>
+                                </div>
+                            </>
+                        )}
                     </div>
                 </div>
             )}

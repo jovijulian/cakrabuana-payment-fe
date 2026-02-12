@@ -67,6 +67,16 @@ const SignIn: React.FC = () => {
                     linkText: "",
                 });
                 return;
+            } else if (error.response.status === 400) {
+                setAlert({
+                    variant: "error",
+                    title: "Gagal Masuk",
+                    message: "Permintaan tidak valid. Silakan periksa kembali input Anda.",
+                    showLink: false,
+                    linkHref: "",
+                    linkText: "",
+                });
+                return;
             }
             setAlert({
                 variant: "error",
@@ -103,15 +113,13 @@ const SignIn: React.FC = () => {
     };
 
     return (
-        <div className="min-h-screen w-full flex items-center justify-center bg-gradient-to-br from-blue-600 via-teal-500 to-emerald-500 px-4 relative overflow-hidden font-sans">
-            <div className="absolute inset-0 overflow-hidden">
-                <div className="absolute -top-[20%] -left-[10%] w-[50%] h-[50%] bg-white/10 rounded-full blur-3xl"></div>
-                <div className="absolute top-[40%] -right-[10%] w-[40%] h-[40%] bg-blue-400/20 rounded-full blur-3xl"></div>
-                <div className="absolute bottom-[5%] left-[20%] w-[30%] h-[30%] bg-emerald-400/20 rounded-full blur-3xl"></div>
+        <div className="min-h-screen w-full flex items-center justify-center bg-gray-50 px-4 relative font-sans">
+            <div className="absolute inset-0">
+            <div className="absolute inset-0 bg-gradient-to-br from-emerald-500 via-teal-600 to-blue-700 opacity-90"></div>
+            <div className="absolute inset-0 opacity-20" style={{ backgroundImage: 'radial-gradient(#ffffff 1px, transparent 1px)', backgroundSize: '30px 30px' }}></div>
             </div>
-
             <div className="relative w-full max-w-md z-10">
-                <div className="bg-white/95 backdrop-blur-2xl border border-white/50 rounded-3xl shadow-2xl p-8 relative overflow-hidden">
+                <div className="bg-white/95 backdrop-blur-2xl border border-white/50 rounded-3xl shadow-2xl p-8 relative">
                     <div className="text-center mb-8 relative">
                         <div className="flex justify-center mb-5">
                             <div className="bg-white p-4 rounded-2xl shadow-lg border border-gray-100">
@@ -128,7 +136,7 @@ const SignIn: React.FC = () => {
 
                         <h1 className="text-2xl font-extrabold text-gray-800 tracking-tight">Portal Orang Tua</h1>
                         <p className="text-gray-500 text-sm mt-2">
-                            Silakan masuk menggunakan ID Siswa untuk mengakses tagihan.
+                            Silakan masuk menggunakan ID Siswa untuk melihat informasi pembayaran dan lainnya.
                         </p>
                     </div>
 
@@ -197,19 +205,19 @@ const SignIn: React.FC = () => {
                         <button
                             type="submit"
                             disabled={loading}
-                            className={`w-full py-4 px-4 text-white font-bold text-lg rounded-xl shadow-lg shadow-blue-500/30 transform hover:-translate-y-0.5 active:translate-y-0 transition-all duration-200 flex items-center justify-center gap-2
-                        bg-gradient-to-r from-blue-600 to-teal-500 hover:from-blue-700 hover:to-teal-600
-                        ${loading ? 'opacity-80 cursor-not-allowed' : ''}`}
+                            className={`w-full py-4 px-4 text-white font-bold text-base rounded-xl shadow-lg shadow-emerald-500/20 transform hover:-translate-y-0.5 active:translate-y-0 transition-all duration-200 flex items-center justify-center gap-2
+                            bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700
+                            ${loading ? 'opacity-80 cursor-not-allowed' : ''}`}
                         >
                             {loading ? (
-                                <div className="flex space-x-2">
-                                    <div className="w-2.5 h-2.5 rounded-full bg-white animate-bounce" style={{ animationDelay: '0ms' }}></div>
-                                    <div className="w-2.5 h-2.5 rounded-full bg-white animate-bounce" style={{ animationDelay: '150ms' }}></div>
-                                    <div className="w-2.5 h-2.5 rounded-full bg-white animate-bounce" style={{ animationDelay: '300ms' }}></div>
+                                <div className="flex space-x-1.5 py-1">
+                                    <div className="w-2 h-2 rounded-full bg-white animate-bounce [animation-delay:-0.3s]"></div>
+                                    <div className="w-2 h-2 rounded-full bg-white animate-bounce [animation-delay:-0.15s]"></div>
+                                    <div className="w-2 h-2 rounded-full bg-white animate-bounce"></div>
                                 </div>
                             ) : (
                                 <>
-                                    <span>Masuk Sekarang</span>
+                                    <span>Masuk Portal</span>
                                     <ArrowRight className="w-5 h-5" />
                                 </>
                             )}
