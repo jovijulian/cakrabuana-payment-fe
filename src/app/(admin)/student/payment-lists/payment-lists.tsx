@@ -238,8 +238,9 @@ export default function StudentPaymentListPage() {
     };
 
     const goToDetail = (noFaktur: string) => {
-        const id = encodeURIComponent(noFaktur);
-        router.push(`/student/payment-lists/${id}`);
+        const safeId = encodeURIComponent(btoa(noFaktur));
+        
+        router.push(`/student/payment-lists/${safeId}`);
     };
 
 

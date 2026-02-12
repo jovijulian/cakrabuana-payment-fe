@@ -149,7 +149,15 @@ export default function StudentPaymentDetailPage() {
     useEffect(() => {
         const fetchDetail = async () => {
             if (!params.id) return;
-            const noFaktur = decodeURIComponent(params.id as string);
+            let noFaktur = "";
+            try {
+                noFaktur = atob(decodeURIComponent(params.id as string));
+            } catch (e) {
+                console.error("Gagal decode ID", e);
+                toast.error("ID Tagihan tidak valid");
+                router.back();
+                return;
+            }
             setLoading(true);
             try {
                 const response = await httpPost(endpointUrl('history-transaction'), { no_faktur: noFaktur }, true);
@@ -255,9 +263,9 @@ export default function StudentPaymentDetailPage() {
                             <p className="text-xs text-white/70 uppercase font-semibold mb-1">Total Tagihan</p>
                             <p className="text-2xl font-bold">{formatRupiah(detail.totaltagih)}</p>
                         </div>
-                       
+
                     </div>
-                    
+
                 </div>
             </div>
 
