@@ -14,13 +14,28 @@ import {
     ShieldCheck,
     ArrowRight,
     Copy,
-    Loader2
+    Loader2,
+    X,
+    ChevronDown,
+    ChevronUp,
+    CreditCard
 } from 'lucide-react';
 import { toast } from 'react-toastify';
 import { endpointUrl, httpPost } from "@/../helpers";
 import { Loading } from '@/components/loading/Loading';
 import { FaWhatsapp } from 'react-icons/fa';
 import moment from 'moment';
+
+interface InstructionDetail {
+    step: string;
+    value: string;
+}
+
+interface Instruction {
+    id: number;
+    name: string;
+    details: InstructionDetail[];
+}
 
 interface DetailItem {
     nama_tagihan: string;
@@ -39,6 +54,10 @@ interface PaymentData {
     status_bayar: string;
     detail: DetailItem[];
     url_payment: string | null;
+    // Field Baru
+    is_va: boolean;
+    va: string;
+    instructions: Instruction[];
 }
 
 export default function PaymentDetailPage() {
@@ -48,6 +67,35 @@ export default function PaymentDetailPage() {
     const [error, setError] = useState('');
     const [processing, setProcessing] = useState(false);
     const [showContent, setShowContent] = useState(false);
+    const [showInstructionModal, setShowInstructionModal] = useState(false);
+    const [activeInstruction, setActiveInstruction] = useState<number | null>(null);
+    const getTheme = () => {
+        const sekolah = data?.sekolah?.toLowerCase() || '';
+        if (sekolah.includes('bintara')) {
+            return {
+                primary: 'bg-blue-700',
+                primaryHover: 'hover:bg-blue-800',
+                gradient: 'from-blue-700 via-blue-600 to-blue-900',
+                text: 'text-blue-700',
+                bgLight: 'bg-blue-50',
+                borderLight: 'border-blue-100',
+                shadow: 'shadow-blue-900/5',
+                buttonText: 'Lihat Nomor VA & Cara Bayar'
+            };
+        }
+        return {
+            primary: 'bg-[#007A33]',
+            primaryHover: 'hover:bg-[#006b2c]',
+            gradient: 'from-[#007A33] via-[#006b2c] to-[#004d20]',
+            text: 'text-[#007A33]',
+            bgLight: 'bg-green-50',
+            borderLight: 'border-green-100',
+            shadow: 'shadow-green-900/5',
+            buttonText: 'Bayar Sekarang'
+        };
+    };
+
+    const theme = getTheme();
 
     const formatRupiah = (angka: string) => {
         const number = parseFloat(angka);
@@ -60,18 +108,14 @@ export default function PaymentDetailPage() {
 
     const getDetail = async () => {
         const paymentKey = params.key;
-
         if (!paymentKey) {
             setError("Link pembayaran tidak valid / kadaluarsa.");
             setLoading(false);
             return;
         }
-
         const minLoadingTime = new Promise(resolve => setTimeout(resolve, 1000));
-
         try {
             const payload = { key: paymentKey };
-
             const [response] = await Promise.all([
                 httpPost(endpointUrl('transaction/detail-by-key'), payload),
                 minLoadingTime
@@ -95,10 +139,15 @@ export default function PaymentDetailPage() {
         getDetail();
     }, []);
 
-    const handlePayment = () => {
+    const handlePaymentAction = () => {
         if (!data) return;
-        setProcessing(true);
 
+        if (data.is_va) {
+            setShowInstructionModal(true);
+            return;
+        }
+
+        setProcessing(true);
         setTimeout(() => {
             if (data.url_payment) {
                 window.open(data.url_payment, '_blank');
@@ -109,27 +158,30 @@ export default function PaymentDetailPage() {
         }, 800);
     };
 
-    const copyFaktur = () => {
-        if (data?.no_faktur) {
-            navigator.clipboard.writeText(data.no_faktur);
-            toast.success("No Faktur disalin!");
+    const copyToClipboard = (text: string, label: string) => {
+        if (text) {
+            navigator.clipboard.writeText(text);
+            toast.success(`${label} disalin!`);
         }
     }
 
+    const toggleInstruction = (id: number) => {
+        setActiveInstruction(activeInstruction === id ? null : id);
+    };
+
     if (loading) {
-        return <Loading message='Memuat tagihan...'/>;
+        return <Loading message='Memuat tagihan...' />;
     }
 
     if (error || !data) {
         return (
             <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center p-4 text-center">
-                <div className="bg-white rounded-3xl shadow-xl p-8 max-w-md w-full border border-green-100">
+                <div className="bg-white rounded-3xl shadow-xl p-8 max-w-md w-full border border-red-100">
                     <div className="bg-red-50 rounded-full w-20 h-20 flex items-center justify-center mx-auto mb-6">
                         <AlertCircle className="text-red-500 w-10 h-10" />
                     </div>
                     <h2 className="text-2xl font-bold text-gray-800 mb-2">Akses Ditolak</h2>
                     <p className="text-gray-600 mb-6">{error || "Data tidak ditemukan"}</p>
-                    <p className="text-xs text-gray-400">Silakan minta link baru kepada admin sekolah.</p>
                 </div>
             </div>
         );
@@ -139,7 +191,7 @@ export default function PaymentDetailPage() {
 
     return (
         <div className="min-h-screen bg-gray-50/50 pb-32 font-sans">
-            <div className="relative bg-gradient-to-br from-[#007A33] via-[#006b2c] to-[#004d20] text-white pb-32 rounded-b-[3rem] shadow-xl overflow-hidden">
+            <div className={`relative bg-gradient-to-br ${theme.gradient} text-white pb-32 rounded-b-[3rem] shadow-xl overflow-hidden`}>
                 <div className="absolute inset-0 opacity-10 pointer-events-none">
                     <School className="absolute -right-10 -top-10 w-[18rem] h-[18rem] text-white transform rotate-12 stroke-1" />
                     <div className="absolute bottom-0 left-0 w-full h-32 bg-gradient-to-t from-black/20 to-transparent"></div>
@@ -151,7 +203,7 @@ export default function PaymentDetailPage() {
                             <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-md px-4 py-1.5 rounded-full border border-white/20 mb-4">
                                 <ShieldCheck className="w-4 h-4 text-yellow-400" />
                                 <span className="text-yellow-100 font-medium text-xs uppercase tracking-widest">
-                                    Cakra Buana - Payment Portal
+                                    {data.sekolah} - Payment Portal
                                 </span>
                             </div>
                             <h1 className="text-3xl md:text-4xl font-bold tracking-tight">{data.sekolah}</h1>
@@ -159,7 +211,7 @@ export default function PaymentDetailPage() {
                         </div>
 
                         <div className="hidden md:block text-right">
-                            <div className={`inline-flex items-center gap-2 px-5 py-2 rounded-xl text-sm font-bold backdrop-blur-md border border-white/20 ${isLunas ? 'bg-green-500/80 text-white' : 'bg-white/90 text-[#007A33]'
+                            <div className={`inline-flex items-center gap-2 px-5 py-2 rounded-xl text-sm font-bold backdrop-blur-md border border-white/20 ${isLunas ? 'bg-green-500/80 text-white' : `bg-white/90 ${theme.text}`
                                 }`}>
                                 {isLunas ? <CheckCircle2 className="w-5 h-5" /> : <CalendarDays className="w-5 h-5" />}
                                 {data.status_bayar}
@@ -174,11 +226,11 @@ export default function PaymentDetailPage() {
 
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 md:gap-8">
                     <div className="lg:col-span-4 lg:sticky lg:top-8 h-fit space-y-6">
-                        <div className="bg-white rounded-3xl  p-6 md:p-8 border border-white/50 backdrop-blur-sm relative overflow-hidden group">
-                            <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-green-50 to-transparent rounded-bl-full -mr-10 -mt-10 transition-transform group-hover:scale-110"></div>
+                        <div className={`bg-white rounded-3xl p-6 md:p-8 border border-white/50 backdrop-blur-sm relative overflow-hidden group ${theme.shadow}`}>
+                            <div className={`absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl ${theme.bgLight} to-transparent rounded-bl-full -mr-10 -mt-10 transition-transform group-hover:scale-110`}></div>
                             <div className="relative">
                                 <div className="flex items-center gap-4 mb-6">
-                                    <div className="bg-gradient-to-br from-[#007A33] to-[#00A846] w-16 h-16 rounded-2xl flex items-center justify-center text-white ">
+                                    <div className={`bg-gradient-to-br ${theme.gradient} w-16 h-16 rounded-2xl flex items-center justify-center text-white`}>
                                         <GraduationCap className="w-8 h-8" />
                                     </div>
                                     <div>
@@ -192,7 +244,7 @@ export default function PaymentDetailPage() {
                                         <p className="text-xs text-gray-400 uppercase font-bold tracking-wider mb-1">Nomor Faktur</p>
                                         <div className="flex justify-between items-center">
                                             <p className="text-gray-800 font-mono font-bold text-sm truncate mr-2">{data.no_faktur}</p>
-                                            <button onClick={copyFaktur} className="text-[#007A33] hover:text-[#005c27] transition-colors p-1" title="Salin Faktur">
+                                            <button onClick={() => copyToClipboard(data.no_faktur, 'No Faktur')} className={`${theme.text} hover:opacity-80 transition-colors p-1`} title="Salin Faktur">
                                                 <Copy className="w-4 h-4" />
                                             </button>
                                         </div>
@@ -218,43 +270,31 @@ export default function PaymentDetailPage() {
                                 </div>
                             </div>
                         </div>
-
-                        <div className="hidden lg:block bg-white/60 backdrop-blur rounded-2xl p-5 border border-white/50 text-center shadow-sm">
-                            <p className="text-sm text-gray-500 mb-3">Mengalami kendala pembayaran?</p>
-                            <a
-                                href={`https://wa.me/${data.no_wa}`}
-                                target="_blank"
-                                className="inline-flex items-center justify-center gap-2 w-full bg-green-50 text-[#007A33] hover:bg-green-100 hover:text-green-800 px-4 py-3 rounded-xl font-bold transition-all"
-                            >
-                                <FaWhatsapp className="w-5 h-5" />
-                                Chat Admin Sekolah
-                            </a>
-                        </div>
                     </div>
 
                     <div className="lg:col-span-8 space-y-6">
                         <div className="flex items-center gap-3 px-2">
-                            <div className="bg-[#007A33] text-white p-2 rounded-lg">
+                            <div className={`${theme.primary} text-white p-2 rounded-lg`}>
                                 <ScrollText className="w-5 h-5" />
                             </div>
                             <h3 className="text-xl font-bold text-gray-800">Rincian Pembayaran</h3>
                         </div>
 
-                        <div className="bg-white rounded-3xl shadow-xl shadow-green-900/5 overflow-hidden border border-gray-100">
+                        <div className={`bg-white rounded-3xl shadow-xl ${theme.shadow} overflow-hidden border border-gray-100`}>
                             <div className="divide-y divide-gray-100">
                                 {data.detail.map((item, index) => (
                                     <div
                                         key={index}
-                                        className="group p-5 md:p-6 hover:bg-green-50/50 transition-colors flex flex-col sm:flex-row sm:items-center justify-between gap-3"
+                                        className={`group p-5 md:p-6 hover:${theme.bgLight} transition-colors flex flex-col sm:flex-row sm:items-center justify-between gap-3`}
                                     >
                                         <div className="flex items-start gap-4">
-                                            <div className="mt-1.5 w-2 h-2 rounded-full bg-gray-300 group-hover:bg-[#007A33] transition-colors flex-shrink-0"></div>
+                                            <div className={`mt-1.5 w-2 h-2 rounded-full bg-gray-300 group-hover:${theme.primary} transition-colors flex-shrink-0`}></div>
                                             <div>
                                                 <p className="text-gray-800 font-medium text-lg leading-snug">{item.nama_tagihan}</p>
                                             </div>
                                         </div>
                                         <div className="text-right pl-6">
-                                            <span className="block font-bold text-gray-900 text-lg group-hover:text-[#007A33] transition-colors">
+                                            <span className={`block font-bold text-gray-900 text-lg group-hover:${theme.text} transition-colors`}>
                                                 {formatRupiah(item.nominal)}
                                             </span>
                                         </div>
@@ -266,18 +306,17 @@ export default function PaymentDetailPage() {
                                 <div className="text-gray-500 text-sm md:text-base font-medium">
                                     Total Tagihan Keseluruhan
                                 </div>
-                                <div className="text-3xl font-bold text-[#007A33]">
+                                <div className={`text-3xl font-bold ${theme.text}`}>
                                     {formatRupiah(data.total_tagihan)}
                                 </div>
                             </div>
                         </div>
 
                         <div className="lg:hidden text-center py-4">
-                            <p className="text-sm text-gray-500 mb-3">Mengalami kendala pembayaran?</p>
                             <a
                                 href={`https://wa.me/${data.no_wa}`}
                                 target="_blank"
-                                className="inline-flex items-center justify-center gap-2 w-full bg-green-50 text-green-600 hover:bg-green-100 hover:text-green-700 px-4 py-3 rounded-xl font-bold transition-all"
+                                className={`inline-flex items-center justify-center gap-2 w-full ${theme.bgLight} ${theme.text} px-4 py-3 rounded-xl font-bold transition-all`}
                             >
                                 <FaWhatsapp className="w-5 h-5" />
                                 Chat Admin Sekolah
@@ -287,30 +326,30 @@ export default function PaymentDetailPage() {
                 </div>
             </div>
 
-            <div className="fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur-xl border-t border-green-100  z-50">
+            <div className={`fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-xl border-t ${theme.borderLight} z-40`}>
                 <div className="max-w-7xl mx-auto px-4 py-4 md:py-5">
                     <div className="flex flex-col md:flex-row items-center justify-between gap-4">
                         <div className="hidden md:flex items-center gap-3">
-                            <div className="bg-green-50 p-3 rounded-full text-[#007A33]">
+                            <div className={`${theme.bgLight} p-3 rounded-full ${theme.text}`}>
                                 <Banknote className="w-6 h-6" />
                             </div>
                             <div>
                                 <p className="text-xs text-gray-500 uppercase font-bold">Total Pembayaran</p>
-                                <p className="text-xl font-bold text-[#007A33]">{formatRupiah(data.total_tagihan)}</p>
+                                <p className={`text-xl font-bold ${theme.text}`}>{formatRupiah(data.total_tagihan)}</p>
                             </div>
                         </div>
 
                         <div className="w-full md:w-auto flex gap-3">
-                            <div className="md:hidden flex-1 bg-green-50 px-4 py-2 rounded-xl border border-green-100 flex flex-col justify-center">
+                            <div className={`md:hidden flex-1 ${theme.bgLight} px-4 py-2 rounded-xl border ${theme.borderLight} flex flex-col justify-center`}>
                                 <span className="text-[10px] text-gray-500 font-bold uppercase">Total</span>
-                                <span className="text-lg font-bold text-[#007A33] leading-none">{formatRupiah(data.total_tagihan)}</span>
+                                <span className={`text-lg font-bold ${theme.text} leading-none`}>{formatRupiah(data.total_tagihan)}</span>
                             </div>
 
                             {!isLunas ? (
                                 <button
-                                    onClick={handlePayment}
+                                    onClick={handlePaymentAction}
                                     disabled={processing}
-                                    className="flex-1 md:flex-none bg-[#007A33] hover:bg-[#006b2c] text-white px-8 py-3 rounded-xl font-bold  transform active:scale-95 transition-all flex items-center justify-center gap-3 min-w-[200px]"
+                                    className={`flex-1 md:flex-none ${theme.primary} ${theme.primaryHover} text-white px-8 py-3 rounded-xl font-bold transform active:scale-95 transition-all flex items-center justify-center gap-3 min-w-[200px] shadow-lg`}
                                 >
                                     {processing ? (
                                         <>
@@ -319,8 +358,8 @@ export default function PaymentDetailPage() {
                                         </>
                                     ) : (
                                         <>
-                                            <span>Bayar Sekarang</span>
-                                            <ArrowRight className="w-4 h-4" />
+                                            <span>{data.is_va ? 'Lihat Cara Bayar' : 'Bayar Sekarang'}</span>
+                                            {data.is_va ? <ScrollText className="w-4 h-4" /> : <ArrowRight className="w-4 h-4" />}
                                         </>
                                     )}
                                 </button>
@@ -335,6 +374,92 @@ export default function PaymentDetailPage() {
                 </div>
             </div>
 
+            {showInstructionModal && (
+                <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-4 sm:p-6">
+                    <div
+                        className="absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity"
+                        onClick={() => setShowInstructionModal(false)}
+                    ></div>
+
+                    <div className="relative w-full max-w-lg bg-white rounded-t-3xl sm:rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh] animate-in slide-in-from-bottom-10 fade-in duration-300">
+                        <div className={`${theme.bgLight} p-5 border-b ${theme.borderLight} flex justify-between items-center`}>
+                            <div>
+                                <h3 className="text-lg font-bold text-gray-800">Instruksi Pembayaran</h3>
+                                <p className="text-xs text-gray-500">Virtual Account</p>
+                            </div>
+                            <button
+                                onClick={() => setShowInstructionModal(false)}
+                                className="p-2 bg-white rounded-full text-gray-400 hover:text-gray-600 shadow-sm"
+                            >
+                                <X className="w-5 h-5" />
+                            </button>
+                        </div>
+
+                        <div className="overflow-y-auto p-5 space-y-6">
+                            <div className="bg-gradient-to-r from-gray-800 to-gray-900 rounded-2xl p-6 text-white shadow-lg relative overflow-hidden">
+                                <div className="absolute top-0 right-0 w-32 h-32 bg-white opacity-5 rounded-full -mr-10 -mt-10 pointer-events-none"></div>
+
+                                <p className="text-gray-400 text-xs font-medium uppercase tracking-wider mb-2">Nomor Virtual Account</p>
+                                <div className="flex items-center justify-between gap-4">
+                                    <span className="text-xl font-mono font-bold tracking-wider relative z-10">{data.va}</span>
+                                    <button
+                                        onClick={() => copyToClipboard(data.va, 'Nomor VA')}
+                                        className="bg-white/10 hover:bg-white/20 p-2 rounded-lg transition-colors relative z-10" 
+                                    >
+                                        <Copy className="w-5 h-5 text-white" />
+                                    </button>
+                                </div>
+                                <div className="mt-4 pt-4 border-t border-white/10 flex justify-between items-center relative z-10">
+                                    <span className="text-gray-400 text-sm">Total Tagihan</span>
+                                    <span className="text-xl font-bold">{formatRupiah(data.total_tagihan)}</span>
+                                </div>
+                            </div>
+
+                            <div>
+                                <h4 className="font-bold text-gray-800 mb-3 flex items-center gap-2">
+                                    <CreditCard className={`w-5 h-5 ${theme.text}`} />
+                                    Metode Pembayaran
+                                </h4>
+                                <div className="space-y-3">
+                                    {data.instructions.map((inst) => (
+                                        <div key={inst.id} className="border border-gray-200 rounded-xl overflow-hidden">
+                                            <button
+                                                onClick={() => toggleInstruction(inst.id)}
+                                                className={`w-full flex items-center justify-between p-4 text-left font-medium text-gray-700 hover:bg-gray-50 transition-colors ${activeInstruction === inst.id ? 'bg-gray-50' : ''}`}
+                                            >
+                                                <span>{inst.name}</span>
+                                                {activeInstruction === inst.id ? <ChevronUp className="w-4 h-4 text-gray-400" /> : <ChevronDown className="w-4 h-4 text-gray-400" />}
+                                            </button>
+
+                                            {activeInstruction === inst.id && (
+                                                <div className="p-4 bg-gray-50 border-t border-gray-100 text-sm space-y-3">
+                                                    {inst.details.map((step, idx) => (
+                                                        <div key={step.step} className="flex gap-3">
+                                                            <div className={`flex-shrink-0 w-6 h-6 rounded-full ${theme.primary} text-white flex items-center justify-center text-xs font-bold mt-0.5`}>
+                                                                {idx + 1}
+                                                            </div>
+                                                            <p className="text-gray-600 leading-relaxed">{step.value}</p>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            )}
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="p-4 border-t border-gray-100 bg-gray-50 text-center">
+                            <button
+                                onClick={() => setShowInstructionModal(false)}
+                                className={`w-full py-3 rounded-xl font-bold ${theme.primary} text-white shadow-lg`}
+                            >
+                                Tutup
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

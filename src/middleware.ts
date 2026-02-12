@@ -1,121 +1,55 @@
 import { NextRequest, NextResponse } from 'next/server';
 
 const publicRoutes = [
-    '/signin',
+    '/signin',         
+    '/admin/signin',  
 ];
 
-const rolePermissions: Record<string, string[]> = {
-    '1': [
-        '/dashboard',
-        '/sales-accounts',
-        '/customers',
-        '/transactions',
-        '/follow-ups',
-        '/master-data',
-        '/profile',
-        '/purchasing',
-        '/admin-panel',
-        '/customer-categories',
-        '/forms',
-    ],
-    '2': [
-       '/dashboard',
-       '/customers',
-       '/transactions',
-       '/follow-ups',
-       '/profile'
-    ],
-    '3': [
-        '/purchasing/dashboard',
-        '/purchasing/master',
-        '/purchasing/deposits',
-        '/purchasing/work-orders',
-        '/purchasing/orders',
-     ],
-     '4': [
-        '/dashboard',
-        '/sales-accounts',
-        '/customers',
-        '/transactions',
-        '/master-data',
-        '/profile',
-    ],
-    '5': [
-        '/profile',
-        '/purchasing',
-    ],
-    '6': [
-        '/dashboard',
-        '/area-manager',
-        '/profile',
-        '/transactions'
-    ],
-    '7': [
-        '/dashboard',
-        '/general-manager',
-        '/profile',
-        '/transactions'
-    ],
-    '8': [
-        '/dashboard',
-        '/sales-accounts',
-        '/customers',
-        '/transactions',
-        '/profile',
-        '/admin-panel',
-    ],
-    
-};
-
 const homeRoutes: Record<string, string> = {
-    '1': '/menus',
-    '2': '/dashboard',
-    '3': '/purchasing/dashboard',
-    '4': '/dashboard',
-    '5': '/purchasing/dashboard',
-    '6': '/dashboard',
-    '7': '/dashboard',
-    '8': '/menus',
+    '1': '/admin/dashboard',       
+    '2': '/student/payment-lists',
 };
 
+const rolePermissions: Record<string, string[]> = {
+    '1': ['/admin', '/profile'],   
+    '2': ['/student', '/profile'],
+};
 
 export async function middleware(request: NextRequest) {
     const { pathname } = request.nextUrl;
-    const tokenCookie = request.cookies.get('cookieKey');
-    const token = tokenCookie?.value;
-
+    const token = request.cookies.get('cookieKey')?.value;
+    const userRole = request.cookies.get('role')?.value; 
     const isPaymentPage = pathname.startsWith('/payment');
     const isPublicRoute = publicRoutes.includes(pathname) || isPaymentPage;
 
+    if (pathname === '/') {
+        return NextResponse.redirect(new URL('/signin', request.url));
+    }
+
     if (!token) {
-        if (!isPublicRoute) {
-            return NextResponse.redirect(new URL('/signin', request.url));
-        }
-        return NextResponse.next();
-    }
-
-    const userRole = request.cookies.get('role')?.value || '3';
-    const userHomeRoute = homeRoutes[userRole] || '/signin';
-
-    if (pathname === '/signin' || pathname === '/') {
-        return NextResponse.redirect(new URL(userHomeRoute, request.url));
-    }
-
-    if (pathname.startsWith('/menus')) {
-        if (userRole !== '1' && userRole !== '8') {
-            return NextResponse.redirect(new URL(userHomeRoute, request.url));
-        }
-        return NextResponse.next();
-    }
-
-    if (!isPublicRoute) {
-        const allowedRoutes = rolePermissions[userRole] || [];
-        const isAuthorized = allowedRoutes.some(route => pathname.startsWith(route));
-        
-        if (isAuthorized) {
+        if (isPublicRoute) {
             return NextResponse.next();
-        } else {
-            return NextResponse.redirect(new URL(userHomeRoute, request.url));
+        }
+
+        if (pathname.startsWith('/admin')) {
+            return NextResponse.redirect(new URL('/admin/signin', request.url));
+        }
+
+        return NextResponse.redirect(new URL('/signin', request.url));
+    }
+
+    if (publicRoutes.includes(pathname) || pathname === '/') {
+        const destination = homeRoutes[userRole || ''] || '/signin'; 
+        return NextResponse.redirect(new URL(destination, request.url));
+    }
+
+    if (!isPaymentPage) {
+        const allowedPrefixes = rolePermissions[userRole || ''] || [];
+        const hasPermission = allowedPrefixes.some(prefix => pathname.startsWith(prefix));
+
+        if (!hasPermission) {
+            const home = homeRoutes[userRole || ''] || '/signin';
+            return NextResponse.redirect(new URL(home, request.url));
         }
     }
 

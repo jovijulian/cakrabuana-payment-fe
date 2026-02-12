@@ -1,21 +1,24 @@
 "use client";
 import React, { useState } from "react";
 import Image from "next/image";
+import Link from "next/link";
+import { Root } from "@/types";
 import { useForm } from "@mantine/form";
+import { endpointUrl, httpGet } from "@/../helpers";
 import useLocalStorage from "@/hooks/useLocalStorage";
 import { setCookie } from "cookies-next";
 import Alert from "@/components/ui/alert/Alert";
 import axios from "axios";
 import {
+    Mail,
     Lock,
     Eye,
     EyeOff,
-    User,
-    ArrowRight,
-    CreditCard
-} from "lucide-react";
+    School,
+    ShieldCheck,
+    ArrowRight
+} from "lucide-react"; // Menggunakan Lucide agar konsisten
 import { toast } from "react-toastify";
-import { endpointUrl, httpGet } from "@/../helpers";
 
 const SignIn: React.FC = () => {
     const [isPasswordVisible, setIsPasswordVisible] = useState(false);
@@ -29,13 +32,10 @@ const SignIn: React.FC = () => {
             password: "",
         },
         validate: {
-            email: (value: any) =>
-                !value || value.length < 5
-                    ? "ID Siswa tidak valid"
-                    : null,
+            email: (value: any) => (/^\S+@\S+$/.test(value) ? null : "Email tidak valid"),
             password: (value: any) =>
-                value.length < 1
-                    ? "Password wajib diisi"
+                value.length < 6
+                    ? "Password minimal 6 karakter"
                     : null,
         },
     });
@@ -103,84 +103,95 @@ const SignIn: React.FC = () => {
     };
 
     return (
-        <div className="min-h-screen w-full flex items-center justify-center bg-gradient-to-br from-blue-600 via-teal-500 to-emerald-500 px-4 relative overflow-hidden font-sans">
-            <div className="absolute inset-0 overflow-hidden">
-                <div className="absolute -top-[20%] -left-[10%] w-[50%] h-[50%] bg-white/10 rounded-full blur-3xl"></div>
-                <div className="absolute top-[40%] -right-[10%] w-[40%] h-[40%] bg-blue-400/20 rounded-full blur-3xl"></div>
-                <div className="absolute bottom-[5%] left-[20%] w-[30%] h-[30%] bg-emerald-400/20 rounded-full blur-3xl"></div>
+        <div className="min-h-screen w-full flex items-center justify-center bg-[#007A33] px-4 relative overflow-hidden font-sans">
+            {/* --- Background Pattern & Decor --- */}
+            <div className="absolute inset-0 overflow-hidden opacity-10">
+                {/* Pattern titik-titik halus */}
+                <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.2)_1px,transparent_3px),linear-gradient(90deg,rgba(255,255,255,0.2)_1px,transparent_3px)] bg-[size:30px_30px]"></div>
+                {/* Icon Sekolah Raksasa di Background */}
+                <School className="absolute -right-20 -bottom-20 text-white w-96 h-96 opacity-20 transform -rotate-12" />
             </div>
 
+            {/* --- Main Card --- */}
             <div className="relative w-full max-w-md z-10">
-                <div className="bg-white/95 backdrop-blur-2xl border border-white/50 rounded-3xl shadow-2xl p-8 relative overflow-hidden">
+                {/* Efek Glow di belakang card */}
+                <div className="absolute -inset-1 bg-gradient-to-r from-yellow-400 to-green-300 rounded-[2rem] blur opacity-30"></div>
+
+                <div className="bg-white/95 backdrop-blur-xl border border-white/50 rounded-[1.5rem] shadow-2xl p-8 relative overflow-hidden">
+
+                    {/* Header Section */}
                     <div className="text-center mb-8 relative">
-                        <div className="flex justify-center mb-5">
-                            <div className="bg-white p-4 rounded-2xl shadow-lg border border-gray-100">
+                        <div className="flex justify-center mb-4">
+                            <div className="bg-green-50 p-4 rounded-2xl shadow-inner border border-green-100">
+                                {/* Ganti dengan Logo Image Sekolah Anda */}
                                 <Image
                                     src="/images/logo/logo-sekolah.jpeg"
-                                    alt="Logo Sekolah"
-                                    width={100}
-                                    height={100}
-                                    className="object-contain h-14 w-auto"
+                                    alt="Cakra Buana Logo"
+                                    width={120}
+                                    height={120}
+                                    className="object-contain h-16 w-auto"
                                     priority
                                 />
                             </div>
                         </div>
 
-                        <h1 className="text-2xl font-extrabold text-gray-800 tracking-tight">Portal Orang Tua</h1>
-                        <p className="text-gray-500 text-sm mt-2">
-                            Silakan masuk menggunakan ID Siswa untuk mengakses tagihan.
+                        <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-green-100/50 border border-green-200 text-[#007A33] text-xs font-bold uppercase tracking-wider mb-2">
+                            <ShieldCheck className="w-3.5 h-3.5" />
+                            Admin Portal
+                        </div>
+                        <h1 className="text-2xl font-bold text-gray-800">Welcome Back!</h1>
+                        <p className="text-gray-500 text-sm mt-1">
+                            Silakan login untuk mengelola sistem.
                         </p>
                     </div>
 
-                    <form onSubmit={form.onSubmit(onSubmit)} className="space-y-6">
+                    {/* Form Section */}
+                    <form onSubmit={form.onSubmit(onSubmit)} className="space-y-5">
+
+                        {/* Email Input */}
                         <div className="space-y-1.5">
                             <label className="text-sm font-semibold text-gray-700 ml-1">
-                                Nomor Registrasi Siswa
+                                Email Address
                             </label>
                             <div className="relative group">
-                                <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-gray-400 group-focus-within:text-blue-600 transition-colors">
-                                    <CreditCard className="w-5 h-5" />
+                                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400 group-focus-within:text-[#007A33] transition-colors">
+                                    <Mail className="w-5 h-5" />
                                 </div>
                                 <input
                                     {...form.getInputProps("email")}
-                                    type="text"
-                                    placeholder="Contoh: 125260002"
-                                    className="w-full pl-11 pr-4 py-3.5 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-gray-800 placeholder-gray-400 font-medium"
+                                    type="email"
+                                    placeholder="nama@cakrabuana.sch.id"
+                                    className="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#007A33]/20 focus:border-[#007A33] transition-all text-gray-800 placeholder-gray-400"
                                 />
                             </div>
-                            {form.errors.email && (
-                                <p className="text-red-500 text-xs ml-1 mt-1 font-medium">{form.errors.email}</p>
-                            )}
                         </div>
 
+                        {/* Password Input */}
                         <div className="space-y-1.5">
                             <label className="text-sm font-semibold text-gray-700 ml-1">
                                 Password
                             </label>
                             <div className="relative group">
-                                <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-gray-400 group-focus-within:text-blue-600 transition-colors">
+                                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400 group-focus-within:text-[#007A33] transition-colors">
                                     <Lock className="w-5 h-5" />
                                 </div>
                                 <input
                                     {...form.getInputProps("password")}
                                     type={isPasswordVisible ? "text" : "password"}
-                                    placeholder="Masukkan password"
-                                    className="w-full pl-11 pr-12 py-3.5 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-gray-800 placeholder-gray-400 font-medium"
+                                    placeholder="Masukkan password anda"
+                                    className="w-full pl-10 pr-12 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#007A33]/20 focus:border-[#007A33] transition-all text-gray-800 placeholder-gray-400"
                                 />
                                 <button
                                     type="button"
                                     onClick={() => setIsPasswordVisible(!isPasswordVisible)}
-                                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-blue-600 transition-colors p-1"
+                                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-[#007A33] transition-colors p-1"
                                 >
                                     {isPasswordVisible ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                                 </button>
                             </div>
-                            {form.errors.password && (
-                                <p className="text-red-500 text-xs ml-1 mt-1 font-medium">{form.errors.password}</p>
-                            )}
                         </div>
 
-                        {/* Error Alert */}
+                        {/* Error Alert Component */}
                         {alert && (
                             <div className="animate-fade-in-down">
                                 <Alert
@@ -194,23 +205,23 @@ const SignIn: React.FC = () => {
                             </div>
                         )}
 
+                        {/* Submit Button */}
                         <button
                             type="submit"
                             disabled={loading}
-                            className={`w-full py-4 px-4 text-white font-bold text-lg rounded-xl shadow-lg shadow-blue-500/30 transform hover:-translate-y-0.5 active:translate-y-0 transition-all duration-200 flex items-center justify-center gap-2
-                        bg-gradient-to-r from-blue-600 to-teal-500 hover:from-blue-700 hover:to-teal-600
-                        ${loading ? 'opacity-80 cursor-not-allowed' : ''}`}
+                            className={`w-full py-3.5 px-4 bg-[#007A33] hover:bg-[#00662b] text-white font-bold rounded-xl shadow-lg shadow-green-900/10 hover:shadow-green-900/20 transform hover:-translate-y-0.5 active:translate-y-0 transition-all duration-200 focus:ring-2 focus:ring-offset-2 focus:ring-[#007A33] flex items-center justify-center gap-2 ${loading ? 'opacity-80 cursor-not-allowed' : ''
+                                }`}
                         >
                             {loading ? (
                                 <div className="flex space-x-2">
-                                    <div className="w-2.5 h-2.5 rounded-full bg-white animate-bounce" style={{ animationDelay: '0ms' }}></div>
-                                    <div className="w-2.5 h-2.5 rounded-full bg-white animate-bounce" style={{ animationDelay: '150ms' }}></div>
-                                    <div className="w-2.5 h-2.5 rounded-full bg-white animate-bounce" style={{ animationDelay: '300ms' }}></div>
+                                    <div className="w-2 h-2 rounded-full bg-white animate-bounce" style={{ animationDelay: '0ms' }}></div>
+                                    <div className="w-2 h-2 rounded-full bg-white animate-bounce" style={{ animationDelay: '150ms' }}></div>
+                                    <div className="w-2 h-2 rounded-full bg-white animate-bounce" style={{ animationDelay: '300ms' }}></div>
                                 </div>
                             ) : (
                                 <>
-                                    <span>Masuk Sekarang</span>
-                                    <ArrowRight className="w-5 h-5" />
+                                    <span>Sign In</span>
+                                    <ArrowRight className="w-4 h-4" />
                                 </>
                             )}
                         </button>
@@ -219,7 +230,7 @@ const SignIn: React.FC = () => {
                     {/* Footer Copyright */}
                     <div className="mt-8 pt-6 border-t border-gray-100 text-center">
                         <p className="text-xs text-gray-400">
-                            &copy; {new Date().getFullYear()} Bintara - Cakra Buana. All rights reserved.
+                            &copy; {new Date().getFullYear()} Sekolah Cakra Buana. All rights reserved.
                         </p>
                     </div>
                 </div>
